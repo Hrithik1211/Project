@@ -182,8 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
         uname = username.getText().toString();
         pword = password.getText().toString();
-        Log.i("USERNAME", uname);
-        Log.i("PASSWORD",pword);
+        
         Toast.makeText(this,uname,Toast.LENGTH_LONG).show();
 
 
