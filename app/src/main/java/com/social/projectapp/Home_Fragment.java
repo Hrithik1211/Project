@@ -24,6 +24,13 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import org.w3c.dom.Text;
 
 import java.io.IOException;
@@ -32,6 +39,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 
 
@@ -67,7 +75,7 @@ public class Home_Fragment extends Fragment {
        }
     }
 
-
+ArrayAdapter arrayAdapter;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         ArrayList<String> arrayList = new ArrayList<>();
@@ -75,15 +83,74 @@ public class Home_Fragment extends Fragment {
         arrayList.add("how");
         arrayList.add("are");arrayList.add("you");
         adapter = new Adapter(getActivity(),mtitle,images);
-       // adapter = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1,arrayList);
+        // arrayAdapter = new ArrayAdapter(getActivity(),android.R.layout.simple_list_item_1,mtitle);
         super.onCreate(savedInstanceState);
     }
     String str;
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        final FirebaseDatabase database;
+        final DatabaseReference databaseReference;
+        database = FirebaseDatabase.getInstance();
+        databaseReference= database.getReference("my-project-1568486854550");
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot dataSnapshot1: dataSnapshot.getChildren()){
+                    
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+        databaseReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                String s1 = dataSnapshot.getValue(String.class);
+                mtitle.add(s1);
+                Log.i("INFO",s1);
+                arrayAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+
+
+
+
         final VideoView videoView = (VideoView) view.findViewById(R.id.descriptionVideoView);
         videoView.setVisibility(View.INVISIBLE);
+        mtitle.add("Facebook");
+        mtitle.add("WhatsApp");
+        mtitle.add("Twitter");
+        mtitle.add("Instagram");
+        mtitle.add("Youtube");
+
         final TextView textView = (TextView) view.findViewById(R.id.textdescription);
         textView.setVisibility(View.INVISIBLE);
         final ListView listView = (ListView) view.findViewById(R.id.listView);
@@ -159,7 +226,8 @@ public class Home_Fragment extends Fragment {
 
     }
     ListView listView ;
-    String mtitle[] = {"Facebook","WhatsApp","Twitter","Instagram","Youtube"};
+   ArrayList<String> mtitle = new ArrayList<>();
+
     String mDescription[]={"Hello","Hello","Hello","Hello","Hello"};
     int images[] = {R.drawable.facebook,R.drawable.whatsapp,R.drawable.twitter,R.drawable.instagram,R.drawable.youtube};
     ArrayList<String > arrayList =new ArrayList<>();
@@ -167,12 +235,12 @@ public class Home_Fragment extends Fragment {
     class Adapter extends ArrayAdapter<String>{
 
         Context context;
-        String rTitle [];
+        ArrayList<String> rTitle ;
         String rDescription[];
         int rImgs [] ;
 
 
-        Adapter ( Context c,String  title [] , int imgs []){
+        Adapter ( Context c,ArrayList<String> title , int imgs []){
             super(c,R.layout.row,title);
             this.context=c;
             this.rTitle=title;
@@ -189,7 +257,7 @@ public class Home_Fragment extends Fragment {
             ImageView images = row.findViewById(R.id.image);
             TextView myTitle = row.findViewById(R.id.textview1);
             images.setImageResource(rImgs[position]);
-            myTitle.setText(rTitle[position]);
+            myTitle.setText(rTitle.get(position));
             return row;
         }
     }

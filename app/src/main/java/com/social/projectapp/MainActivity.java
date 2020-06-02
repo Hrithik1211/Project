@@ -16,6 +16,7 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +27,7 @@ import android.view.inputmethod.InputBinding;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -87,11 +89,19 @@ public class MainActivity extends AppCompatActivity {
     Adapter adapter;
 
 
+    EditText username , password;
+    Button Register;
     private static int SPLASH_TIME_OUT = 4000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        username = (EditText) findViewById(R.id.username);
+        password =(EditText) findViewById(R.id.password);
+        Register = (Button) findViewById(R.id.Register);
+        username.setVisibility(View.INVISIBLE);
+        password.setVisibility(View.INVISIBLE);
+        Register.setVisibility(View.INVISIBLE);
 
     }
 
@@ -165,6 +175,49 @@ public class MainActivity extends AppCompatActivity {
 
 
     ArrayAdapter arrayAdapter;
+    String uname,pword;
+
+    public void register(View v){
+
+
+        uname = username.getText().toString();
+        pword = password.getText().toString();
+        Log.i("USERNAME", uname);
+        Log.i("PASSWORD",pword);
+        Toast.makeText(this,uname,Toast.LENGTH_LONG).show();
+
+
+    }
+
+
+
+    public void signup(View v){
+
+        BottomNavigationView menu = (BottomNavigationView) findViewById(R.id.bottomnavigationmenu);
+
+        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+
+        Button login = (Button) findViewById(R.id.logIn);
+
+        Button signin = (Button) findViewById(R.id.signUp);
+
+        login.setVisibility(View.INVISIBLE);
+
+        signin.setVisibility(View.INVISIBLE);
+
+        username.setVisibility(View.VISIBLE);
+        password.setVisibility(View.VISIBLE);
+        Register.setVisibility(View.VISIBLE);
+
+        username = (EditText) findViewById(R.id.username);
+        password = (EditText) findViewById(R.id.password);
+
+
+
+    }
+
+
+
     public void login(View v){
 
 
