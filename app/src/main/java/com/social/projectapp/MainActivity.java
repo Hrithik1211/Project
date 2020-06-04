@@ -37,6 +37,8 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationMenu;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,63 +52,48 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    ArrayAdapter arrayAdapter;
+    String uname,pword;
 
+    FirebaseDatabase database ;
+    DatabaseReference refuname, refpword,ref;
+
+    Users users;
+    TextView textView ;
     ListView listView ;
-    String mtitle[] = {"Facebook","WhatsApp","Twitter","Instagram","Youtube"};
-    String mDescription[]={"Hello","Hello","Hello","Hello","Hello"};
-    int images[] = {R.drawable.facebook,R.drawable.whatsapp,R.drawable.twitter,R.drawable.instagram,R.drawable.youtube};
-    ArrayList<String > arrayList =new ArrayList<>();
-
-    class Adapter extends ArrayAdapter<String>{
-
-        Context context;
-        String rTitle [];
-        String rDescription[];
-        int rImgs [] ;
-
-
-        Adapter ( Context c,String  title [] , int imgs []){
-            super(c,R.layout.row,title);
-            this.context=c;
-            this.rTitle=title;
-            this.rImgs = imgs;
-
-        }
-
-        @NonNull
-        @Override
-        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-
-            LayoutInflater layoutInflater = (LayoutInflater)getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View row = layoutInflater.inflate(R.layout.row,parent,false);
-            ImageView images = row.findViewById(R.id.image);
-            TextView myTitle = row.findViewById(R.id.textview1);
-            images.setImageResource(rImgs[position]);
-            myTitle.setText(rTitle[position]);
-            return row;
-        }
-    }
-    Adapter adapter;
-
-
     EditText username , password;
-    Button Register;
-    private static int SPLASH_TIME_OUT = 4000;
+    Button Register; long backpressedtime;
+    Toast toast;
+
+    int SPLASH_TIME_OUT = 4000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        },SPLASH_TIME_OUT);
+
+
         username = (EditText) findViewById(R.id.username);
         password =(EditText) findViewById(R.id.password);
         Register = (Button) findViewById(R.id.Register);
         username.setVisibility(View.INVISIBLE);
         password.setVisibility(View.INVISIBLE);
         Register.setVisibility(View.INVISIBLE);
-
+        database = FirebaseDatabase.getInstance();
+        //ref = FirebaseDatabase.getInstance().getReference("users");
+        ref = database.getReference().child("users");
+        ref.setValue("hello world");
+        users = new Users();
     }
 
-    long backpressedtime;
-    Toast toast;
+
     @Override
     public void onBackPressed() {
        // if(backpressedtime + 2000>System.currentTimeMillis()){
@@ -174,16 +161,26 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    ArrayAdapter arrayAdapter;
-    String uname,pword;
 
     public void register(View v){
 
 
         uname = username.getText().toString();
         pword = password.getText().toString();
-        
-        Toast.makeText(this,uname,Toast.LENGTH_LONG).show();
+
+
+
+
+        users.username = uname;
+        users.password = pword;
+
+        Log.i("USERNAME",users.username);
+        Log.i("PASSWORD",users.password);
+
+        ref.setValue(users);
+
+        //ref.push().setValue(users);
+
 
 
     }
@@ -210,7 +207,6 @@ public class MainActivity extends AppCompatActivity {
 
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
-
 
 
     }
@@ -245,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    TextView textView ;
+
     private BottomNavigationView.OnNavigationItemSelectedListener navlistener = new BottomNavigationView.OnNavigationItemSelectedListener() {
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
