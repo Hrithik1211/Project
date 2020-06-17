@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.ListFragment;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.icu.text.UnicodeSetSpanner;
@@ -37,13 +38,16 @@ import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationMenu;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  {
 
 
 
@@ -64,20 +68,47 @@ public class MainActivity extends AppCompatActivity {
     EditText username , password;
     Button Register; long backpressedtime;
     Toast toast;
-
+    String mtitle[] = new String[170];
+    String mDescription [] = new String[170];
+    String imageurl[] = new String[170];
     int SPLASH_TIME_OUT = 4000;
+    int n=170;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        new Handler().postDelayed(new Runnable() {
+        DatabaseReference ref;
+        ref = FirebaseDatabase.getInstance().getReference().child("selection1");
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
-            public void run() {
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                startActivity(intent);
-                finish();
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String string="";
+                String str;
+                for(int j=0;j<n;j++)
+                {
+                    string = "INGREDIENTS:\n\n";
+                    str=""+j;
+                    string += dataSnapshot.child(str).child("ingredients").getValue().toString();
+                    String name;
+                    name= dataSnapshot.child(str).child("name").getValue().toString();mtitle[j]=name;
+                    string += "\n\nPROCEDURE:\n\n";
+                    string += dataSnapshot.child(str).child("instructions").getValue().toString();
+                    mDescription[j]=string;
+                    imageurl[j] = dataSnapshot.child(str).child("image").toString();
+                    imageurl[j]=imageurl[j].substring(36,imageurl[j].length()-2);
+                    string ="";
+
+                }
+
             }
-        },SPLASH_TIME_OUT);
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+
+
+        });
 
 
         username = (EditText) findViewById(R.id.username);
@@ -86,14 +117,16 @@ public class MainActivity extends AppCompatActivity {
         username.setVisibility(View.INVISIBLE);
         password.setVisibility(View.INVISIBLE);
         Register.setVisibility(View.INVISIBLE);
-        database = FirebaseDatabase.getInstance();
-        //ref = FirebaseDatabase.getInstance().getReference("users");
-        ref = database.getReference().child("users");
-        ref.setValue("hello world");
-        users = new Users();
+
     }
 
+    public String[]  getmtitle(){
+        return mtitle;
 
+    }
+    public String[] getmDescription(){
+        return mDescription;
+    }
     @Override
     public void onBackPressed() {
        // if(backpressedtime + 2000>System.currentTimeMillis()){
@@ -135,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                 hello.setVisibility(View.INVISIBLE);
                 break;
             case R.id.mainscreen:
-                selectedFragment = new Home_Fragment();
+                selectedFragment = new Home_Fragment(mtitle,imageurl,mDescription);
                 hello.setVisibility(View.INVISIBLE);
                 break;
            /* case R.id.logout:
@@ -167,20 +200,6 @@ public class MainActivity extends AppCompatActivity {
 
         uname = username.getText().toString();
         pword = password.getText().toString();
-
-
-
-
-        users.username = uname;
-        users.password = pword;
-
-        Log.i("USERNAME",users.username);
-        Log.i("PASSWORD",users.password);
-
-        ref.setValue(users);
-
-        //ref.push().setValue(users);
-
 
 
     }
@@ -236,7 +255,14 @@ public class MainActivity extends AppCompatActivity {
 
         menu.setOnNavigationItemSelectedListener(navlistener);
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,new Home_Fragment()).addToBackStack(null).commit();
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,new Home_Fragment(mtitle,imageurl,mDescription)).addToBackStack(null).commit();
+
+            }
+        },2500);
 
 
     }
@@ -253,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
                     selectedFragment = new Favorites_Fragment();
                     break;
                 case R.id.home :
-                    selectedFragment = new Home_Fragment();
+                    selectedFragment = new Home_Fragment(mtitle,imageurl,mDescription);
 
                     break;
                 case R.id.activity :
