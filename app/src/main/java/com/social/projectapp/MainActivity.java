@@ -36,6 +36,11 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationMenu;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.database.DataSnapshot;
@@ -43,9 +48,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import  java.*;
+import java.util.Stack;
 
 public class MainActivity extends AppCompatActivity  {
 
@@ -65,18 +76,26 @@ public class MainActivity extends AppCompatActivity  {
     Users users;
     TextView textView ;
     ListView listView ;
-    EditText username , password;
+    EditText username , password , names;
     Button Register; long backpressedtime;
     Toast toast;
     String mtitle[] = new String[170];
     String mDescription [] = new String[170];
     String imageurl[] = new String[170];
+    String name;
     int SPLASH_TIME_OUT = 4000;
-    int n=170;
+    int n=170,t=0,count1=0;
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+
+    private InterstitialAd interstitialAd;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewById(R.id.loadingPanel).setVisibility(View.INVISIBLE);
         DatabaseReference ref;
         ref = FirebaseDatabase.getInstance().getReference().child("selection1");
         ref.addValueEventListener(new ValueEventListener() {
@@ -100,6 +119,8 @@ public class MainActivity extends AppCompatActivity  {
 
                 }
 
+
+
             }
 
             @Override
@@ -111,6 +132,12 @@ public class MainActivity extends AppCompatActivity  {
         });
 
 
+
+
+
+        names = (EditText) findViewById(R.id.editText);
+        name = names.getText().toString();
+
         username = (EditText) findViewById(R.id.username);
         password =(EditText) findViewById(R.id.password);
         Register = (Button) findViewById(R.id.Register);
@@ -120,18 +147,17 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
-    public String[]  getmtitle(){
-        return mtitle;
 
-    }
-    public String[] getmDescription(){
-        return mDescription;
-    }
+    Stack<Fragment> list;
     @Override
     public void onBackPressed() {
-       // if(backpressedtime + 2000>System.currentTimeMillis()){
-       //     toast.cancel();
-            super.onBackPressed();
+        // if(backpressedtime + 2000>System.currentTimeMillis()){
+        //     toast.cancel();
+      //  super.onBackPressed();
+        AppCompatActivity appCompatActivity = (AppCompatActivity) this;
+        Fragment favorites_fragment = list.pop();
+        appCompatActivity.getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,favorites_fragment).commit();
+
         //    return;
       /*  }
         else
@@ -164,11 +190,11 @@ public class MainActivity extends AppCompatActivity  {
 
                 break;
             case R.id.about:
-                selectedFragment = new Activity_Fragment();
+                selectedFragment = new Activity_Fragment(name,mtitle,mDescription,imageurl);
                 hello.setVisibility(View.INVISIBLE);
                 break;
             case R.id.mainscreen:
-                selectedFragment = new Home_Fragment(mtitle,imageurl,mDescription);
+                selectedFragment = new Home_Fragment(mtitle,imageurl,mDescription,name,t,count1++);
                 hello.setVisibility(View.INVISIBLE);
                 break;
            /* case R.id.logout:
@@ -177,14 +203,16 @@ public class MainActivity extends AppCompatActivity  {
 */
         }
         if (item.getItemId() == R.id.history || item.getItemId() == R.id.about) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.framelayout, selectedFragment).addToBackStack(null).commit();
+            list.push(selectedFragment);
+            getSupportFragmentManager().beginTransaction().replace(R.id.framelayout, selectedFragment).commit();
         } else if (R.id.mainscreen == item.getItemId()) {
 
-            getSupportFragmentManager().beginTransaction().replace(R.id.framelayout, selectedFragment).addToBackStack(null).commit();
+            list.push(selectedFragment);
+            getSupportFragmentManager().beginTransaction().replace(R.id.framelayout, selectedFragment).commit();
             hello.setVisibility(View.VISIBLE);
 
         } else{
-         //   getSupportFragmentManager().beginTransaction().replace(R.id.framelayoutmenu,HomeActivity).commit();
+            //   getSupportFragmentManager().beginTransaction().replace(R.id.framelayoutmenu,HomeActivity).commit();
         }
 
 
@@ -193,9 +221,7 @@ public class MainActivity extends AppCompatActivity  {
     BottomNavigationView menu;
 
 
-
-
-    public void register(View v){
+   public void register(View v){
 
 
         uname = username.getText().toString();
@@ -207,6 +233,10 @@ public class MainActivity extends AppCompatActivity  {
 
 
     public void signup(View v){
+
+       if(interstitialAd.isLoaded()){
+           interstitialAd.show();
+       }
 
         BottomNavigationView menu = (BottomNavigationView) findViewById(R.id.bottomnavigationmenu);
 
@@ -234,36 +264,70 @@ public class MainActivity extends AppCompatActivity  {
 
     public void login(View v){
 
+        name = names.getText().toString();
+name = "q";
+list = new Stack<Fragment>();
+    //    if(name.length()>0)
+            {
+
+            findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+            names.setVisibility(View.INVISIBLE);
+
+            BottomNavigationView menu = (BottomNavigationView) findViewById(R.id.bottomnavigationmenu);
+
+            final ImageView imageView = (ImageView) findViewById(R.id.imageView);
+
+            Button login = (Button) findViewById(R.id.logIn);
+
+            Button signin = (Button) findViewById(R.id.signUp);
+
+            imageView.setVisibility(View.INVISIBLE);
+
+            login.setVisibility(View.INVISIBLE);
+
+            signin.setVisibility(View.INVISIBLE);
+
+            menu.setVisibility(View.VISIBLE);
+
+            menu.setOnNavigationItemSelectedListener(navlistener);
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
 
 
+                    db.collection(name)
+                            .get()
+                            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        for (QueryDocumentSnapshot document : task.getResult()) {
+                                            t=Integer.parseInt(document.getData().toString().substring(7,document.getData().toString().indexOf('}')));
+                                            Log.i("INFO",t+"");
+                                            break;
+                                        }
+                                    } else {
 
-        BottomNavigationView menu = (BottomNavigationView) findViewById(R.id.bottomnavigationmenu);
+                                    }
+                                }
+                            });
+                    findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+                    list.push(new Home_Fragment(mtitle,imageurl,mDescription,name,t,count1++));
+                    getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,new Home_Fragment(mtitle,imageurl,mDescription,name,t,count1)).commit();
 
-        ImageView imageView = (ImageView) findViewById(R.id.imageView);
+                }
+            },2500);
 
-        Button login = (Button) findViewById(R.id.logIn);
 
-        Button signin = (Button) findViewById(R.id.signUp);
+        }
+        //else
+            {
+            Toast.makeText(this,"Enter name",Toast.LENGTH_LONG).show();
+            name = names.getText().toString();
 
-        imageView.setVisibility(View.INVISIBLE);
-
-        login.setVisibility(View.INVISIBLE);
-
-        signin.setVisibility(View.INVISIBLE);
-
-        menu.setVisibility(View.VISIBLE);
-
-        menu.setOnNavigationItemSelectedListener(navlistener);
-
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,new Home_Fragment(mtitle,imageurl,mDescription)).addToBackStack(null).commit();
-
-            }
-        },2500);
-
+        }
 
     }
 
@@ -279,14 +343,19 @@ public class MainActivity extends AppCompatActivity  {
                     selectedFragment = new Favorites_Fragment();
                     break;
                 case R.id.home :
-                    selectedFragment = new Home_Fragment(mtitle,imageurl,mDescription);
+                    selectedFragment = new Home_Fragment(mtitle,imageurl,mDescription,name,t++,count1++);
 
                     break;
                 case R.id.activity :
-                    selectedFragment = new Activity_Fragment();
+                    selectedFragment = new Activity_Fragment(name,mtitle,mDescription,imageurl);
                     break;
+
+
+                case R.id.search:
+                    selectedFragment = new Search_Fragment();
             }
-             getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,selectedFragment).addToBackStack(null).commit();
+            list.push(selectedFragment);
+            getSupportFragmentManager().beginTransaction().replace(R.id.framelayout,selectedFragment).commit();
 
             return true;
         }
